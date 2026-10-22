@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // User profile documents in Cloud Firestore
+    match /users/{userId} {
+      // Authenticated users can read their own profile
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // Users can only create their own profile document with matching UID
+      allow create: if request.auth != null && request.auth.uid == userId
+                    && request.resource.data.uid == userId
+                    && request.resource.data.email is string
+                    && request.resource.data.name is string;
+
+      // Users can only update their own profile; UID cannot be changed
+      allow update: if request.auth != null && request.auth.uid == userId
+                    && request.resource.data.uid == userId;
+
+      // Deletions are forbidden by default to prevent profile loss
+      allow delete: if false;
+    }
+
+    // Default catch-all denies access to any other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
