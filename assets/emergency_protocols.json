@@ -1,0 +1,34 @@
+[
+  {
+    "keywords": ["burn", "jal", "scald"],
+    "steps": [
+      "Call an ambulance (1122) immediately for a large, deep, electrical, or facial burn.",
+      "Run cool, clean water over the burn for 20 minutes; remove tight jewellery or clothing nearby.",
+      "Cover loosely with a sterile non-stick dressing and do not apply ice, butter, or creams."
+    ]
+  },
+  {
+    "keywords": ["bleeding", "blood", "cut", "wound", "khoon", "kat"],
+    "steps": [
+      "Call an ambulance (1122) immediately if bleeding is severe, spurting, or does not stop.",
+      "Press a clean cloth or sterile gauze firmly and continuously directly on the wound.",
+      "Keep pressure on the wound and raise the injured limb if possible; do not remove soaked dressings."
+    ]
+  },
+  {
+    "keywords": ["snake", "bite", "sanp"],
+    "steps": [
+      "Call an ambulance (1122) immediately and report the snake bite; do not wait for symptoms.",
+      "Keep the person still, calm, and the bitten limb below heart level; remove rings or tight items.",
+      "Do not cut, suck, ice, or apply a tourniquet, and do not try to catch the snake."
+    ]
+  },
+  {
+    "keywords": ["chest pain", "heart", "seene", "breathing", "saans"],
+    "steps": [
+      "Call an ambulance (1122) immediately for chest pain, severe breathing trouble, collapse, or blue lips.",
+      "Sit the person upright, keep them still, loosen tight clothing, and reassure them.",
+      "If they become unresponsive and are not breathing normally, start CPR and use an AED if available."
+    ]
+  }
+]

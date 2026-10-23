@@ -1,4 +1,4 @@
-name: rive_animation
+name: emergency_app
 description: "A new Flutter project."
 publish_to: 'none'
 
@@ -20,9 +20,23 @@ dependencies:
   cloud_firestore: ^7.0.0
   shared_preferences: ^2.3.0
   google_generative_ai: ^0.4.7
+  intl: ^0.20.2
+  google_fonts: ^6.2.1
+  url_launcher: ^6.2.0
+  firebase_storage: ^14.0.0
+  image_picker: ^1.1.2
+  geolocator: ^14.0.2
+  geocoding: ^4.0.0
+  permission_handler: ^12.0.0
+  connectivity_plus: ^6.1.1
+  speech_to_text: ^7.0.0
+  flutter_tts: ^4.2.2
 
 dependency_overrides:
   shared_preferences_android: 2.3.4
+  # 2.5.1 is the last release without objective_c (its build hook breaks when
+  # the Flutter SDK path contains spaces).
+  path_provider_foundation: 2.5.1
 
 dev_dependencies:
   flutter_test:
@@ -39,6 +53,7 @@ flutter:
     - assets/icons/
     - assets/avaters/
     - lib/.env
+    - assets/emergency_protocols.json
 
   fonts:
     - family: Intel
@@ -50,4 +65,3 @@ flutter:
       fonts:
         - asset: assets/Fonts/Poppins-Bold.ttf
           weight: 700
-
