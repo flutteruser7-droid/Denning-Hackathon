@@ -131,10 +131,10 @@ class _ConversationRoomState extends State<ConversationRoom>
 
   DocumentReference get _roomDoc => _firestore.collection('Chats').doc(_roomId);
 
-  DocumentReference get _myUserDoc => _firestore.collection('Users').doc(_me);
+  DocumentReference get _myUserDoc => _firestore.collection('users').doc(_me);
 
   DocumentReference get _theirUserDoc =>
-      _firestore.collection('Users').doc(widget.userId);
+      _firestore.collection('users').doc(widget.userId);
 
   // ══════════════════════════════════════════════════════════════════════════
   //  LIFECYCLE

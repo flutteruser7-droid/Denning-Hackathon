@@ -1,4 +1,5 @@
 // import 'package:emergency_app/auth/AddEmergency.dart'; // UNUSED
+import 'package:emergency_app/auth/AddAdmin.dart';
 import 'package:emergency_app/auth/login.dart';
 import 'package:emergency_app/auth/splash_screen.dart';
 // import 'package:emergency_app/services/emergency_config.dart'; // UNUSED
@@ -46,6 +47,7 @@ class _AppRoot extends StatelessWidget {
       // home: AdminDashboardUI(serviceType: "Admin", primaryColor: Colors.blue, serviceIcon: Icons.admin_panel_settings),
       home: SplashScreen(),
       // home: UserDashboard(),
+      // home: AddEmergencyService(),
     );
   }
 }

@@ -18,7 +18,8 @@ class AdminLoginScreen extends StatefulWidget {
   State<AdminLoginScreen> createState() => _AdminLoginScreenState();
 }
 
-class _AdminLoginScreenState extends State<AdminLoginScreen> with TickerProviderStateMixin {
+class _AdminLoginScreenState extends State<AdminLoginScreen>
+    with TickerProviderStateMixin {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
 
@@ -112,7 +113,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> with TickerProvider
     if (isLoggedIn && userRole == 'service') {
       String expectedDept = widget.departmentType.toLowerCase();
       String currentDept = serviceType.toLowerCase();
-      
+
       String normExpected = expectedDept;
       if (expectedDept.contains('fire')) normExpected = 'fire';
       if (expectedDept.contains('police')) normExpected = 'police';
@@ -126,11 +127,20 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> with TickerProvider
       if (normExpected == normCurrent) {
         if (!mounted) return;
         if (normExpected == 'police') {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const PoliceDashboard()));
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const PoliceDashboard()),
+          );
         } else if (normExpected == 'fire') {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const FireDashboard()));
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const FireDashboard()),
+          );
         } else if (normExpected == 'ambulance') {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AmbulanceDashboard()));
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const AmbulanceDashboard()),
+          );
         }
         return;
       }
@@ -167,15 +177,31 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> with TickerProvider
 
       final uid = cred.user!.uid;
 
-      // Verify in admins collection
-      final adminDoc = await FirebaseFirestore.instance.collection('admins').doc(uid).get();
+      // Responder details are stored in the same collection used by users.
+      var adminDoc = await FirebaseFirestore.instance
+          .collection('EmergencyServices')
+          .doc(uid)
+          .get();
+      if (!adminDoc.exists) {
+        final matches = await FirebaseFirestore.instance
+            .collection('EmergencyServices')
+            .where('uid', isEqualTo: uid)
+            .limit(1)
+            .get();
+        if (matches.docs.isNotEmpty) {
+          adminDoc = matches.docs.first;
+        }
+      }
 
       if (!adminDoc.exists) {
         await FirebaseAuth.instance.signOut();
         throw Exception('Admin account not found.');
       }
 
-      final deptType = adminDoc.data()?['department_type']?.toString().toLowerCase();
+      final deptType = adminDoc
+          .data()?['serviceType']
+          ?.toString()
+          .toLowerCase();
       final expectedDept = widget.departmentType.toLowerCase();
 
       String normalizedExpected = expectedDept;
@@ -183,13 +209,23 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> with TickerProvider
       if (expectedDept.contains('police')) normalizedExpected = 'police';
       if (expectedDept.contains('ambulance')) normalizedExpected = 'ambulance';
 
-      if (deptType != normalizedExpected) {
+      final normalizedDept = deptType?.contains('fire') == true
+          ? 'fire'
+          : deptType?.contains('police') == true
+          ? 'police'
+          : deptType?.contains('ambulance') == true
+          ? 'ambulance'
+          : deptType;
+
+      if (normalizedDept != normalizedExpected) {
         await FirebaseAuth.instance.signOut();
-        throw Exception('This account is registered for $deptType, but you selected ${widget.departmentType}.');
+        throw Exception(
+          'This account is registered for $deptType, but you selected ${widget.departmentType}.',
+        );
       }
 
       if (!mounted) return;
-      
+
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isLoggedIn', true);
       await prefs.setString('userId', uid);
@@ -204,13 +240,21 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> with TickerProvider
       }
 
       if (normalizedExpected == 'police') {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const PoliceDashboard()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const PoliceDashboard()),
+        );
       } else if (normalizedExpected == 'fire') {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const FireDashboard()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const FireDashboard()),
+        );
       } else if (normalizedExpected == 'ambulance') {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AmbulanceDashboard()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AmbulanceDashboard()),
+        );
       }
-
     } catch (e) {
       _showSnack(e.toString().replaceAll('Exception: ', ''), error: true);
     } finally {
@@ -294,7 +338,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> with TickerProvider
                 height: 28,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
-                  color: _isDarkMode ? const Color(0xFF1A3A72) : const Color(0xFFE2E8F0),
+                  color: _isDarkMode
+                      ? const Color(0xFF1A3A72)
+                      : const Color(0xFFE2E8F0),
                   border: Border.all(
                     color: _isDarkMode ? Colors.white24 : Colors.black12,
                   ),
@@ -311,12 +357,16 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> with TickerProvider
                         height: 22,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: _isDarkMode ? Colors.tealAccent : const Color(0xFF0A2550),
+                          color: _isDarkMode
+                              ? Colors.tealAccent
+                              : const Color(0xFF0A2550),
                         ),
                         child: Icon(
                           _isDarkMode ? Icons.nightlight_round : Icons.wb_sunny,
                           size: 14,
-                          color: _isDarkMode ? const Color(0xFF060E1F) : Colors.white,
+                          color: _isDarkMode
+                              ? const Color(0xFF060E1F)
+                              : Colors.white,
                         ),
                       ),
                     ),
@@ -360,8 +410,18 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> with TickerProvider
         alignment: Alignment.center,
         children: [
           _PulseRing(controller: _pulseCtrl, delay: 0.0, size: 80, color: cRed),
-          _PulseRing(controller: _pulseCtrl, delay: 0.33, size: 80, color: cRed),
-          _PulseRing(controller: _pulseCtrl, delay: 0.66, size: 80, color: cRed),
+          _PulseRing(
+            controller: _pulseCtrl,
+            delay: 0.33,
+            size: 80,
+            color: cRed,
+          ),
+          _PulseRing(
+            controller: _pulseCtrl,
+            delay: 0.66,
+            size: 80,
+            color: cRed,
+          ),
           SizedBox(
             width: 72,
             height: 72,
@@ -378,11 +438,19 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> with TickerProvider
                   ),
                   border: Border.all(color: Colors.white30, width: 2),
                   boxShadow: const [
-                    BoxShadow(color: Color(0x80C02828), blurRadius: 12, offset: Offset(0, 4)),
+                    BoxShadow(
+                      color: Color(0x80C02828),
+                      blurRadius: 12,
+                      offset: Offset(0, 4),
+                    ),
                   ],
                 ),
                 child: const Center(
-                  child: Icon(Icons.admin_panel_settings, color: Colors.white, size: 30),
+                  child: Icon(
+                    Icons.admin_panel_settings,
+                    color: Colors.white,
+                    size: 30,
+                  ),
                 ),
               ),
             ),
@@ -417,7 +485,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> with TickerProvider
         border: Border.all(color: cBorder, width: 0.5),
         boxShadow: [
           BoxShadow(
-            color: _isDarkMode ? const Color(0x40000000) : const Color(0x14000000),
+            color: _isDarkMode
+                ? const Color(0x40000000)
+                : const Color(0x14000000),
             blurRadius: 24,
             offset: const Offset(0, 4),
           ),
@@ -429,7 +499,11 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> with TickerProvider
         children: [
           Text(
             'Admin Access',
-            style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: cText),
+            style: TextStyle(
+              fontSize: 19,
+              fontWeight: FontWeight.w800,
+              color: cText,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -460,16 +534,24 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> with TickerProvider
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => AdminRegisterScreen(departmentType: widget.departmentType)),
+                    MaterialPageRoute(
+                      builder: (_) => AdminRegisterScreen(
+                        departmentType: widget.departmentType,
+                      ),
+                    ),
                   );
                 },
                 child: const Text(
                   'Register here',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: cNavy3),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: cNavy3,
+                  ),
                 ),
               ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -487,7 +569,12 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> with TickerProvider
       children: [
         Text(
           label,
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: cLabel, letterSpacing: 0.4),
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: cLabel,
+            letterSpacing: 0.4,
+          ),
         ),
         const SizedBox(height: 6),
         TextFormField(
@@ -500,10 +587,22 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> with TickerProvider
             prefixIcon: Icon(icon, color: cSub, size: 18),
             filled: true,
             fillColor: cInputBg,
-            contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: BorderSide(color: cBorder, width: 1.5)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: BorderSide(color: cBorder, width: 1.5)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: const BorderSide(color: cNavy3, width: 1.5)),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 14,
+              horizontal: 14,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(13),
+              borderSide: BorderSide(color: cBorder, width: 1.5),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(13),
+              borderSide: BorderSide(color: cBorder, width: 1.5),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(13),
+              borderSide: const BorderSide(color: cNavy3, width: 1.5),
+            ),
           ),
         ),
       ],
@@ -516,7 +615,12 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> with TickerProvider
       children: [
         Text(
           'PASSWORD',
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: cLabel, letterSpacing: 0.4),
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: cLabel,
+            letterSpacing: 0.4,
+          ),
         ),
         const SizedBox(height: 6),
         TextFormField(
@@ -529,14 +633,32 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> with TickerProvider
             prefixIcon: Icon(Icons.lock_outline_rounded, color: cSub, size: 18),
             suffixIcon: GestureDetector(
               onTap: () => setState(() => _obscurePass = !_obscurePass),
-              child: Icon(_obscurePass ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: cSub, size: 18),
+              child: Icon(
+                _obscurePass
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+                color: cSub,
+                size: 18,
+              ),
             ),
             filled: true,
             fillColor: cInputBg,
-            contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: BorderSide(color: cBorder, width: 1.5)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: BorderSide(color: cBorder, width: 1.5)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: const BorderSide(color: cNavy3, width: 1.5)),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 14,
+              horizontal: 14,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(13),
+              borderSide: BorderSide(color: cBorder, width: 1.5),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(13),
+              borderSide: BorderSide(color: cBorder, width: 1.5),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(13),
+              borderSide: const BorderSide(color: cNavy3, width: 1.5),
+            ),
           ),
         ),
       ],
@@ -585,18 +707,43 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> with TickerProvider
         height: 52,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
-          gradient: const LinearGradient(begin: Alignment.centerLeft, end: Alignment.centerRight, colors: [Color(0xFF0F2550), cNavy3]),
-          boxShadow: const [BoxShadow(color: Color(0x590F2550), blurRadius: 18, offset: Offset(0, 4))],
+          gradient: const LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [Color(0xFF0F2550), cNavy3],
+          ),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x590F2550),
+              blurRadius: 18,
+              offset: Offset(0, 4),
+            ),
+          ],
         ),
         child: Center(
           child: _isLoading
-              ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
               : const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.login_rounded, color: Colors.white, size: 18),
                     SizedBox(width: 8),
-                    Text('Sign In', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: 0.3)),
+                    Text(
+                      'Sign In',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
                   ],
                 ),
         ),
@@ -611,7 +758,12 @@ class _PulseRing extends StatelessWidget {
   final double size;
   final Color color;
 
-  const _PulseRing({required this.controller, required this.delay, required this.size, required this.color});
+  const _PulseRing({
+    required this.controller,
+    required this.delay,
+    required this.size,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {

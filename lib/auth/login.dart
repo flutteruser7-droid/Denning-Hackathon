@@ -6,7 +6,8 @@ import 'package:emergency_app/User/user_dashboard.dart';
 import 'package:emergency_app/auth/RegisterUser.dart';
 import 'package:emergency_app/Admin/admin_dashboard_ui.dart';
 import 'package:emergency_app/theme/darkmode.dart';
-import 'package:emergency_app/auth/admin_selection.dart' as emergency_app_admin_selection;
+import 'package:emergency_app/auth/admin_selection.dart'
+    as emergency_app_admin_selection;
 // import 'package:emergency_app/theme/darkmode.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -242,13 +243,13 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
       // ── Check Admin User ──────────────────────────────────────────────
       final adminDoc = await FirebaseFirestore.instance
-          .collection('admins')
+          .collection('EmergencyServices')
           .doc(uid)
           .get();
 
       if (adminDoc.exists) {
-        final serviceType = adminDoc['department_type'] ?? 'Unknown';
-        
+        final serviceType = adminDoc['serviceType'] ?? 'Unknown';
+
         if (_rememberMe) {
           await _saveUserSession(
             uid,
@@ -295,8 +296,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         }
       }
 
-
-
       // ── Not found in any collection ────────────────────────────────────
       await FirebaseAuth.instance.signOut();
       _showSnack('Account data not found in database.', error: true);
@@ -314,18 +313,25 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   }
 
   // ── Service routing ────────────────────────────────────────────────────────
- void _routeToServiceDashboard(String serviceType) {
+  void _routeToServiceDashboard(String serviceType) {
     final type = serviceType.toLowerCase();
-    
+
     // Check if it's one of your recognized services
     if (type == 'fire brigade' || type == 'police' || type == 'ambulance') {
-      _navigateTo(AdminDashboardUI(serviceType: serviceType, primaryColor: cNavy1, serviceIcon: Icons.security));
+      _navigateTo(
+        AdminDashboardUI(
+          serviceType: serviceType,
+          primaryColor: cNavy1,
+          serviceIcon: Icons.security,
+        ),
+      );
     } else {
       _showSnack('Invalid service type. Contact Support.', error: true);
       FirebaseAuth.instance.signOut();
       _clearSession();
     }
   }
+
   void _navigateTo(Widget screen) {
     if (!mounted) return;
     Navigator.pushReplacement(
@@ -987,7 +993,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             if (!mounted) return;
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const emergency_app_admin_selection.AdminSelection()),
+              MaterialPageRoute(
+                builder: (_) =>
+                    const emergency_app_admin_selection.AdminSelection(),
+              ),
             );
           },
           child: const Text(

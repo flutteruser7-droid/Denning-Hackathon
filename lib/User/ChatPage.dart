@@ -29,9 +29,7 @@ class _ChatPageState extends State<ChatPage> {
   final StreamController<List<Map<String, dynamic>>> _servicesController =
       StreamController<List<Map<String, dynamic>>>.broadcast();
   StreamSubscription? _emergencySub;
-  StreamSubscription? _adminsSub;
   List<Map<String, dynamic>> _emergencyList = [];
-  List<Map<String, dynamic>> _adminsList = [];
 
   // ════════════════════════════════════════════════════════════════════════════
   //  TOKENS  — 1 : 1 from UserDashboard
@@ -92,49 +90,46 @@ class _ChatPageState extends State<ChatPage> {
         .collection('EmergencyServices')
         .snapshots()
         .listen((snap) {
-      _emergencyList = snap.docs.map((d) => d.data() as Map<String, dynamic>).toList();
-      _emitCombined();
-    });
-
-    // 2) Fetch from admins collection
-    _adminsSub = FirebaseFirestore.instance
-        .collection('admins')
-        .snapshots()
-        .listen((snap) {
-      _adminsList = snap.docs.map((d) {
-        final data = d.data();
-        String serviceType = data['department_type'] ?? '';
-        if (serviceType.toLowerCase() == 'police') serviceType = 'Police';
-        if (serviceType.toLowerCase() == 'fire') serviceType = 'Fire Brigade';
-        if (serviceType.toLowerCase() == 'ambulance') serviceType = 'Ambulance';
-        
-        return {
-          'uid': data['uid'] ?? d.id,
-          'serviceType': serviceType,
-          'stationName': data['station_name'] ?? data['fire_station_name'] ?? data['hospital_name'] ?? '',
-          'phone': data['official_contact'] ?? data['emergency_number'] ?? data['driver_contact'] ?? '',
-          'status': 'active',
-        };
-      }).toList();
-      _emitCombined();
-    });
+          _emergencyList = snap.docs
+              .map((d) => d.data() as Map<String, dynamic>)
+              .toList();
+          _emitCombined();
+        });
   }
 
   void _emitCombined() {
-    final combined = [..._emergencyList, ..._adminsList];
-    final existingTypes = combined.map((e) => (e['serviceType'] as String? ?? '').toLowerCase()).toSet();
-    
+    final combined = [..._emergencyList];
+    final existingTypes = combined
+        .map((e) => (e['serviceType'] as String? ?? '').toLowerCase())
+        .toSet();
+
     // Default fallback entries so they are ALWAYS available in the UI
     if (!existingTypes.contains('police')) {
-      combined.add({'uid': 'default_police', 'serviceType': 'Police', 'stationName': 'Central Police Station', 'status': 'active'});
+      combined.add({
+        'uid': 'default_police',
+        'serviceType': 'Police',
+        'stationName': 'Central Police Station',
+        'status': 'active',
+      });
     }
     if (!existingTypes.contains('ambulance')) {
-      combined.add({'uid': 'default_ambulance', 'serviceType': 'Ambulance', 'stationName': 'City Hospital Ambulance', 'status': 'active'});
+      combined.add({
+        'uid': 'default_ambulance',
+        'serviceType': 'Ambulance',
+        'stationName': 'City Hospital Ambulance',
+        'status': 'active',
+      });
     }
-    if (!existingTypes.contains('fire brigade') && !existingTypes.contains('fire')) {
-      combined.add({'uid': 'default_fire', 'serviceType': 'Fire Brigade', 'stationName': 'Central Fire Brigade', 'status': 'active'});
+    if (!existingTypes.contains('fire brigade') &&
+        !existingTypes.contains('fire')) {
+      combined.add({
+        'uid': 'default_fire',
+        'serviceType': 'Fire Brigade',
+        'stationName': 'Central Fire Brigade',
+        'status': 'active',
+      });
     }
-    
+
     _servicesController.add(combined);
   }
 
@@ -146,7 +141,6 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void dispose() {
     _emergencySub?.cancel();
-    _adminsSub?.cancel();
     _servicesController.close();
     super.dispose();
   }
@@ -174,7 +168,8 @@ class _ChatPageState extends State<ChatPage> {
                   stream: _servicesController.stream,
                   builder: (context, snapshot) {
                     // Loading
-                    if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+                    if (snapshot.connectionState == ConnectionState.waiting &&
+                        !snapshot.hasData) {
                       return const Center(
                         child: CircularProgressIndicator(
                           color: Color(0xFFE53E3E),

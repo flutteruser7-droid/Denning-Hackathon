@@ -13,10 +13,11 @@ class AdminRegisterScreen extends StatefulWidget {
   State<AdminRegisterScreen> createState() => _AdminRegisterScreenState();
 }
 
-class _AdminRegisterScreenState extends State<AdminRegisterScreen> with TickerProviderStateMixin {
+class _AdminRegisterScreenState extends State<AdminRegisterScreen>
+    with TickerProviderStateMixin {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
-  
+
   final _field1Ctrl = TextEditingController();
   final _field2Ctrl = TextEditingController();
   final _field3Ctrl = TextEditingController();
@@ -107,7 +108,7 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> with TickerPr
   }
 
   Future<void> _registerAdmin() async {
-    if (_emailCtrl.text.trim().isEmpty || 
+    if (_emailCtrl.text.trim().isEmpty ||
         _passCtrl.text.trim().isEmpty ||
         _field1Ctrl.text.trim().isEmpty ||
         _field2Ctrl.text.trim().isEmpty ||
@@ -132,31 +133,42 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> with TickerPr
       if (expectedDept.contains('police')) normalizedExpected = 'police';
       if (expectedDept.contains('ambulance')) normalizedExpected = 'ambulance';
 
+      final serviceType = normalizedExpected == 'fire'
+          ? 'Fire Brigade'
+          : normalizedExpected[0].toUpperCase() +
+                normalizedExpected.substring(1);
       final Map<String, dynamic> adminData = {
         'uid': uid,
         'email': _emailCtrl.text.trim(),
-        'department_type': normalizedExpected,
-        'created_at': FieldValue.serverTimestamp(),
+        'serviceType': serviceType,
+        'userType': 'emergency_service',
+        'status': 'active',
+        'rating': 0,
+        'totalRequests': 0,
+        'createdAt': FieldValue.serverTimestamp(),
       };
 
       if (normalizedExpected == 'police') {
-        adminData['station_name'] = _field1Ctrl.text.trim();
-        adminData['officer_id'] = _field2Ctrl.text.trim();
-        adminData['city_zone'] = _field3Ctrl.text.trim();
-        adminData['official_contact'] = _field4Ctrl.text.trim();
-      } else if (normalizedExpected == 'fire') {
-        adminData['fire_station_name'] = _field1Ctrl.text.trim();
-        adminData['battalion_number'] = _field2Ctrl.text.trim();
-        adminData['city'] = _field3Ctrl.text.trim();
-        adminData['emergency_number'] = _field4Ctrl.text.trim();
-      } else if (normalizedExpected == 'ambulance') {
-        adminData['hospital_name'] = _field1Ctrl.text.trim();
-        adminData['vehicle_number'] = _field2Ctrl.text.trim();
+        adminData['stationName'] = _field1Ctrl.text.trim();
+        adminData['serviceId'] = _field2Ctrl.text.trim();
         adminData['zone'] = _field3Ctrl.text.trim();
-        adminData['driver_contact'] = _field4Ctrl.text.trim();
+        adminData['phone'] = _field4Ctrl.text.trim();
+      } else if (normalizedExpected == 'fire') {
+        adminData['stationName'] = _field1Ctrl.text.trim();
+        adminData['serviceId'] = _field2Ctrl.text.trim();
+        adminData['zone'] = _field3Ctrl.text.trim();
+        adminData['phone'] = _field4Ctrl.text.trim();
+      } else if (normalizedExpected == 'ambulance') {
+        adminData['stationName'] = _field1Ctrl.text.trim();
+        adminData['serviceId'] = _field2Ctrl.text.trim();
+        adminData['zone'] = _field3Ctrl.text.trim();
+        adminData['phone'] = _field4Ctrl.text.trim();
       }
 
-      await FirebaseFirestore.instance.collection('admins').doc(uid).set(adminData);
+      await FirebaseFirestore.instance
+          .collection('EmergencyServices')
+          .doc(uid)
+          .set(adminData);
 
       _showSnack('Admin Registered Successfully!');
       if (mounted) Navigator.pop(context); // Go back to login
@@ -243,7 +255,9 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> with TickerPr
                 height: 28,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
-                  color: _isDarkMode ? const Color(0xFF1A3A72) : const Color(0xFFE2E8F0),
+                  color: _isDarkMode
+                      ? const Color(0xFF1A3A72)
+                      : const Color(0xFFE2E8F0),
                   border: Border.all(
                     color: _isDarkMode ? Colors.white24 : Colors.black12,
                   ),
@@ -260,12 +274,16 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> with TickerPr
                         height: 22,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: _isDarkMode ? Colors.tealAccent : const Color(0xFF0A2550),
+                          color: _isDarkMode
+                              ? Colors.tealAccent
+                              : const Color(0xFF0A2550),
                         ),
                         child: Icon(
                           _isDarkMode ? Icons.nightlight_round : Icons.wb_sunny,
                           size: 14,
-                          color: _isDarkMode ? const Color(0xFF060E1F) : Colors.white,
+                          color: _isDarkMode
+                              ? const Color(0xFF060E1F)
+                              : Colors.white,
                         ),
                       ),
                     ),
@@ -309,8 +327,18 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> with TickerPr
         alignment: Alignment.center,
         children: [
           _PulseRing(controller: _pulseCtrl, delay: 0.0, size: 80, color: cRed),
-          _PulseRing(controller: _pulseCtrl, delay: 0.33, size: 80, color: cRed),
-          _PulseRing(controller: _pulseCtrl, delay: 0.66, size: 80, color: cRed),
+          _PulseRing(
+            controller: _pulseCtrl,
+            delay: 0.33,
+            size: 80,
+            color: cRed,
+          ),
+          _PulseRing(
+            controller: _pulseCtrl,
+            delay: 0.66,
+            size: 80,
+            color: cRed,
+          ),
           SizedBox(
             width: 72,
             height: 72,
@@ -327,11 +355,19 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> with TickerPr
                   ),
                   border: Border.all(color: Colors.white30, width: 2),
                   boxShadow: const [
-                    BoxShadow(color: Color(0x80C02828), blurRadius: 12, offset: Offset(0, 4)),
+                    BoxShadow(
+                      color: Color(0x80C02828),
+                      blurRadius: 12,
+                      offset: Offset(0, 4),
+                    ),
                   ],
                 ),
                 child: const Center(
-                  child: Icon(Icons.admin_panel_settings, color: Colors.white, size: 30),
+                  child: Icon(
+                    Icons.admin_panel_settings,
+                    color: Colors.white,
+                    size: 30,
+                  ),
                 ),
               ),
             ),
@@ -360,7 +396,7 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> with TickerPr
   Widget _buildRegisterCard() {
     final lower = widget.departmentType.toLowerCase();
     String f1Label = '', f2Label = '', f3Label = '', f4Label = '';
-    
+
     if (lower.contains('police')) {
       f1Label = 'Station Name';
       f2Label = 'Officer ID';
@@ -386,7 +422,9 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> with TickerPr
         border: Border.all(color: cBorder, width: 0.5),
         boxShadow: [
           BoxShadow(
-            color: _isDarkMode ? const Color(0x40000000) : const Color(0x14000000),
+            color: _isDarkMode
+                ? const Color(0x40000000)
+                : const Color(0x14000000),
             blurRadius: 24,
             offset: const Offset(0, 4),
           ),
@@ -398,7 +436,11 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> with TickerPr
         children: [
           Text(
             'Create Account',
-            style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: cText),
+            style: TextStyle(
+              fontSize: 19,
+              fontWeight: FontWeight.w800,
+              color: cText,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -406,16 +448,36 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> with TickerPr
             style: TextStyle(fontSize: 12, color: cSub),
           ),
           const SizedBox(height: 22),
-          
-          _buildInputGroup(label: f1Label.toUpperCase(), controller: _field1Ctrl, icon: Icons.business, hint: 'Enter $f1Label'),
+
+          _buildInputGroup(
+            label: f1Label.toUpperCase(),
+            controller: _field1Ctrl,
+            icon: Icons.business,
+            hint: 'Enter $f1Label',
+          ),
           const SizedBox(height: 14),
-          _buildInputGroup(label: f2Label.toUpperCase(), controller: _field2Ctrl, icon: Icons.badge, hint: 'Enter $f2Label'),
+          _buildInputGroup(
+            label: f2Label.toUpperCase(),
+            controller: _field2Ctrl,
+            icon: Icons.badge,
+            hint: 'Enter $f2Label',
+          ),
           const SizedBox(height: 14),
-          _buildInputGroup(label: f3Label.toUpperCase(), controller: _field3Ctrl, icon: Icons.location_city, hint: 'Enter $f3Label'),
+          _buildInputGroup(
+            label: f3Label.toUpperCase(),
+            controller: _field3Ctrl,
+            icon: Icons.location_city,
+            hint: 'Enter $f3Label',
+          ),
           const SizedBox(height: 14),
-          _buildInputGroup(label: f4Label.toUpperCase(), controller: _field4Ctrl, icon: Icons.phone, hint: 'Enter $f4Label'),
+          _buildInputGroup(
+            label: f4Label.toUpperCase(),
+            controller: _field4Ctrl,
+            icon: Icons.phone,
+            hint: 'Enter $f4Label',
+          ),
           const SizedBox(height: 14),
-          
+
           _buildInputGroup(
             label: 'ADMIN EMAIL',
             controller: _emailCtrl,
@@ -444,7 +506,12 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> with TickerPr
       children: [
         Text(
           label,
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: cLabel, letterSpacing: 0.4),
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: cLabel,
+            letterSpacing: 0.4,
+          ),
         ),
         const SizedBox(height: 6),
         TextFormField(
@@ -457,10 +524,22 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> with TickerPr
             prefixIcon: Icon(icon, color: cSub, size: 18),
             filled: true,
             fillColor: cInputBg,
-            contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: BorderSide(color: cBorder, width: 1.5)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: BorderSide(color: cBorder, width: 1.5)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: const BorderSide(color: cNavy3, width: 1.5)),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 14,
+              horizontal: 14,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(13),
+              borderSide: BorderSide(color: cBorder, width: 1.5),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(13),
+              borderSide: BorderSide(color: cBorder, width: 1.5),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(13),
+              borderSide: const BorderSide(color: cNavy3, width: 1.5),
+            ),
           ),
         ),
       ],
@@ -473,7 +552,12 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> with TickerPr
       children: [
         Text(
           'PASSWORD',
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: cLabel, letterSpacing: 0.4),
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: cLabel,
+            letterSpacing: 0.4,
+          ),
         ),
         const SizedBox(height: 6),
         TextFormField(
@@ -486,14 +570,32 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> with TickerPr
             prefixIcon: Icon(Icons.lock_outline_rounded, color: cSub, size: 18),
             suffixIcon: GestureDetector(
               onTap: () => setState(() => _obscurePass = !_obscurePass),
-              child: Icon(_obscurePass ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: cSub, size: 18),
+              child: Icon(
+                _obscurePass
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+                color: cSub,
+                size: 18,
+              ),
             ),
             filled: true,
             fillColor: cInputBg,
-            contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: BorderSide(color: cBorder, width: 1.5)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: BorderSide(color: cBorder, width: 1.5)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: const BorderSide(color: cNavy3, width: 1.5)),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 14,
+              horizontal: 14,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(13),
+              borderSide: BorderSide(color: cBorder, width: 1.5),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(13),
+              borderSide: BorderSide(color: cBorder, width: 1.5),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(13),
+              borderSide: const BorderSide(color: cNavy3, width: 1.5),
+            ),
           ),
         ),
       ],
@@ -509,18 +611,43 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> with TickerPr
         height: 52,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
-          gradient: const LinearGradient(begin: Alignment.centerLeft, end: Alignment.centerRight, colors: [Color(0xFF0F2550), cNavy3]),
-          boxShadow: const [BoxShadow(color: Color(0x590F2550), blurRadius: 18, offset: Offset(0, 4))],
+          gradient: const LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [Color(0xFF0F2550), cNavy3],
+          ),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x590F2550),
+              blurRadius: 18,
+              offset: Offset(0, 4),
+            ),
+          ],
         ),
         child: Center(
           child: _isLoading
-              ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
               : const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.person_add, color: Colors.white, size: 18),
                     SizedBox(width: 8),
-                    Text('Register', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: 0.3)),
+                    Text(
+                      'Register',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
                   ],
                 ),
         ),
@@ -535,7 +662,12 @@ class _PulseRing extends StatelessWidget {
   final double size;
   final Color color;
 
-  const _PulseRing({required this.controller, required this.delay, required this.size, required this.color});
+  const _PulseRing({
+    required this.controller,
+    required this.delay,
+    required this.size,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
